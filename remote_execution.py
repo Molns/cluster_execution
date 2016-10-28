@@ -1,5 +1,5 @@
-from aviral26.molns.MolnsLib.constants import Constants
 import os
+import constants
 
 
 def create_new_id():
@@ -12,7 +12,7 @@ class RemoteHostException(Exception):
 
 
 class RemoteHost:
-    def __init__(self, ip_address,  username, secret_key_file, port=Constants.DEFAULT_QSUB_SSH_PORT,
+    def __init__(self, ip_address,  username, secret_key_file, port=constants.DefaultSshPort,
                  remote_host_id=None):
         if not os.path.exists(secret_key_file):
             raise RemoteHostException("Cannot access {0}".format(secret_key_file))
@@ -41,4 +41,4 @@ class RemoteJob:
 
     def __str__(self):
         print "RemoteJob: input_file={0}, date={1}, remote_host={2}, id={3}"\
-            .format(self.input_file, self.date, self.remote_host, self.id)
+            .format(self.input_file, self.date, str(self.remote_host), self.id)
