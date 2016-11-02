@@ -12,3 +12,7 @@ class RemoteJobFailed(Exception):
 
 class UnknownScratchDir(Exception):
     pass
+
+
+class ReferencedModuleException(Exception):
+    pass

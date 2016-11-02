@@ -2,6 +2,8 @@ import molnsutil.molns_cloudpickle as cloudpickle
 import os
 import datetime
 import constants
+import sys
+import inspect
 import cluster_execution_exceptions
 from remote_execution import RemoteJob, create_new_id
 from cluster_deploy import ClusterDeploy
@@ -15,7 +17,26 @@ class ClusterParameterSweep:
         self.remote_host = remote_host
         self.cluster_deploy = ClusterDeploy(remote_host)
 
+    @staticmethod
+    def check_ingredients_to_be_pickled(*ingredients, **kwargs):
+        for ingredient in ingredients:
+            if ingredient is not None and not ingredient.__module__ == kwargs['module_name']:
+                raise cluster_execution_exceptions \
+                    .ReferencedModuleException("{0} module is referenced. Due to limitations in Python's pickle module,"
+                                               " ClusterParameterSweep requires that all job classes, functions and "
+                                               "parameters be defined in the same module as the caller."
+                                               .format(ingredient.__module__))
+
     def run_async(self, mapper, aggregator=None, reducer=None, number_of_trajectories=None, store_realizations=True):
+        """ Creates a new remote_job and deploys it on the cluster. Returns RemoteJob deployed. """
+
+        # Verify that given parameters are not referenced from other modules, as that produces referenced cloudpickling.
+        calling_module = inspect.getmodule(inspect.stack()[1][0])
+        Log.write_log("Calling module: {0}".format(calling_module))
+        calling_module_name = calling_module.__name__ if calling_module is not None else None
+        ClusterParameterSweep.check_ingredients_to_be_pickled(self.model_cls, mapper, aggregator, reducer,
+                                                              module_name=calling_module_name)
+
         # Create new remote job.
         job_id = create_new_id()
 
@@ -23,11 +44,9 @@ class ClusterParameterSweep:
         if not os.path.exists(input_file_dir):
             os.makedirs(input_file_dir)
 
-        # module_files = self.__get_module_files_required(mapper, aggregator, reducer)
-
         # Write job input file.
         input_data = {'model_cls': self.model_cls, 'params': self.parameters, 'mapper': mapper, 'aggregator': aggregator
-                      , 'reducer': reducer, 'number_of_trajectories': number_of_trajectories,
+            , 'reducer': reducer, 'number_of_trajectories': number_of_trajectories,
                       'store_realizations': store_realizations}
 
         input_file_path = os.path.join(input_file_dir, constants.ClusterExecInputFile)
@@ -46,6 +65,7 @@ class ClusterParameterSweep:
 
     # TODO make this an async method
     def get_sweep_result(self, remote_job):
+        """ Returns job results if computed successfully. """
         job_status = self.cluster_deploy.job_status(remote_job)
 
         if job_status == constants.RemoteJobRunning:
@@ -53,13 +73,14 @@ class ClusterParameterSweep:
 
         if job_status == constants.RemoteJobFailed:
             job_logs = self.cluster_deploy.get_job_logs(remote_job)
-            raise cluster_execution_exceptions.RemoteJobFailed("Failed to do parameter sweep. Job logs:\n{0}"
+            raise cluster_execution_exceptions.RemoteJobFailed("Failed to do parameter sweep. Logs:\n{0}"
                                                                .format(job_logs))
 
         assert job_status == constants.RemoteJobCompleted
 
         if remote_job.local_scratch_dir is None:
-            raise cluster_execution_exceptions.UnknownScratchDir("Scratch directory location unknown for {0}"
+            raise cluster_execution_exceptions.UnknownScratchDir("The job has finished, however, the local "
+                                                                 "scratch directory location is unknown for {0}"
                                                                  .format(remote_job))
         self.cluster_deploy.fetch_remote_job_file(remote_job, constants.ClusterExecOutputFile,
                                                   remote_job.local_scratch_dir)
@@ -69,13 +90,10 @@ class ClusterParameterSweep:
     def clean_up(self, remote_job):
         self.cluster_deploy.clean_up(remote_job)
 
-    def __get_module_files_required(self, mapper, aggregator, reducer):
-        import sys
-        import inspect
-
+    # Unused, but may be useful in the future.
+    @staticmethod
+    def __get_module_files_required(*check_objs):
         modules_files = set()
-
-        check_objs = [self.model_cls, mapper, aggregator, reducer]
 
         for check_obj in check_objs:
             if check_obj is None:

@@ -24,8 +24,7 @@ class ClusterDeploy:
             sftp.stat(os.path.join(base_path, 'molnsutil'))
             Log.write_log("molnsutil exists remotely.")
         except (IOError, OSError):
-            Log.write_log("Installing molnsutil..")
-            Log.write_log("Installing in {0}".format(base_path))
+            Log.write_log("Installing molnsutil in {0}".format(base_path))
             ssh.exec_command("""cd {0};
             wget https://github.com/aviral26/molnsutil/archive/qsub_support.zip;
             unzip qsub_support.zip;
@@ -33,8 +32,9 @@ class ClusterDeploy:
             rm qsub_support.zip;""".format(base_path))
 
     def deploy_job_to_cluster(self, remote_job):
+        """ Submit qsub job for execution on cluster. Takes input remote_execution.RemoteJob object. """
+        base_path = os.path.join(constants.MolnsClusterExecutionDir, remote_job.id)
         try:
-            base_path = os.path.join(constants.MolnsClusterExecutionDir, remote_job.id)
             self.ssh.connect_cluster_node(ip_address=self.remote_host.ip_address, port=self.remote_host.port,
                                           username=self.remote_host.username,
                                           key_filename=self.remote_host.secret_key_file)
@@ -59,6 +59,8 @@ class ClusterDeploy:
             self.ssh.close()
 
     def job_status(self, remote_job):
+        """ Determine if remote job is running, has completed or has failed.
+        Takes input remote_execution.RemoteJob object. """
         base_path = os.path.join(constants.MolnsClusterExecutionDir, remote_job.id)
         try:
             self.ssh.connect_cluster_node(ip_address=remote_job.remote_host.ip_address,
@@ -66,8 +68,6 @@ class ClusterDeploy:
                                           , username=remote_job.remote_host.username,
                                           key_filename=remote_job.remote_host.secret_key_file)
             sftp = self.ssh.open_sftp()
-            import pdb
-            pdb.set_trace()
             try:
                 sftp.stat(os.path.join(base_path, constants.ClusterExecCompleteFile))
             except (IOError, OSError):
@@ -82,13 +82,15 @@ class ClusterDeploy:
             self.ssh.close()
 
     def get_job_logs(self, remote_job, seek=0):
+        """ Get molns_exec_helper debug logs.
+        Takes input remote_execution.RemoteJob object, and an option location to read logs from. """
+        base_path = os.path.join(constants.MolnsClusterExecutionDir, remote_job.id)
         try:
-            base_path = os.path.join(constants.MolnsClusterExecutionDir, remote_job.id)
             self.ssh.connect_cluster_node(ip_address=remote_job.remote_host.ip_address,
                                           port=remote_job.remote_host.port, username=remote_job.remote_host.username,
                                           key_filename=remote_job.remote_host.secret_key_file)
             sftp = self.ssh.open_sftp()
-            log = sftp.file(os.path.join(base_path, constants.ClusterExecOutputFile), 'r')
+            log = sftp.file(os.path.join(base_path, constants.ClusterExecLogsFile), 'r')
             log.seek(seek)
             output = log.read()
             return output
@@ -96,9 +98,9 @@ class ClusterDeploy:
             self.ssh.close()
 
     def clean_up(self, remote_job):
+        """ Delete remote job, local and remote scratch dirs. """
+        base_path = os.path.join(constants.MolnsClusterExecutionDir, remote_job.id)
         try:
-            base_path = os.path.join(constants.MolnsClusterExecutionDir, remote_job.id)
-
             self.ssh.connect_cluster_node(ip_address=remote_job.remote_host.ip_address,
                                           port=remote_job.remote_host.port, username=remote_job.remote_host.username,
                                           key_filename=remote_job.remote_host.secret_key_file)
@@ -107,7 +109,7 @@ class ClusterDeploy:
             try:
                 self.ssh.exec_command("kill -TERM `cat {0}/pid` > /dev/null 2&>1".format(base_path))
             except SSHException:
-                Log.write_log("Remote process already not running.")
+                Log.write_log("Remote process already dead.")
 
             # Remove the job directory on the remote server.
             self.ssh.exec_command("rm -r {0}".format(base_path))
@@ -118,8 +120,9 @@ class ClusterDeploy:
             self.ssh.close()
 
     def fetch_remote_job_file(self, remote_job, remote_file_name, local_file_path):
+        """ Fetch remote_file_name in remote_job's remote scratch dir and write to local_file_path. """
+        base_path = os.path.join(constants.MolnsClusterExecutionDir, remote_job.id)
         try:
-            base_path = os.path.join(constants.MolnsClusterExecutionDir, remote_job.id)
             self.ssh.connect_cluster_node(ip_address=remote_job.remote_host.ip_address,
                                           port=remote_job.remote_host.port, username=remote_job.remote_host.username,
                                           key_filename=remote_job.remote_host.secret_key_file)
