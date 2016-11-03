@@ -20,7 +20,7 @@ class RemoteHost:
         self.ip_address = ip_address
         self.port = port
         self.username = username
-        self.secret_key_file = secret_key_file
+        self.secret_key_file = secret_key_file  # TODO add check to make sure this file isn't password protected.
         if remote_host_id is None:
             remote_host_id = create_new_id()
         self.id = remote_host_id
@@ -31,8 +31,8 @@ class RemoteHost:
 
 
 class RemoteJob:
-    def __init__(self, input_file, date, remote_host, local_scratch_dir=None, remote_job_id=None):
-        self.input_file = input_file
+    def __init__(self, input_files, date, remote_host, local_scratch_dir=None, remote_job_id=None):
+        self.input_files = input_files
         self.date = date
         self.remote_host = remote_host
         if remote_job_id is None:
@@ -41,5 +41,5 @@ class RemoteJob:
         self.local_scratch_dir = local_scratch_dir
 
     def __str__(self):
-        return "RemoteJob: input_file={0}, date={1}, remote_host={2}, id={3}, local_scratch_dir={4}"\
-            .format(self.input_file, self.date, str(self.remote_host), self.id, self.local_scratch_dir)
+        return "RemoteJob: input_files={0}, date={1}, remote_host={2}, id={3}, local_scratch_dir={4}"\
+            .format(self.input_files, self.date, str(self.remote_host), self.id, self.local_scratch_dir)

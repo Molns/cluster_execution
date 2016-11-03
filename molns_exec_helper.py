@@ -7,7 +7,7 @@ import sys
 import os
 
 
-def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, storage_dir=None):
+def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_cluster_input_file, storage_dir=None):
         with open(logs, 'w') as stdout_fh:
             lib_path = ""
             try:
@@ -19,18 +19,14 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, storage_dir
                 with open(cluster_exec_input_file, "rb") as inp:
                     inp_obj = pickle.load(inp)
 
-                model_cls = inp_obj['model_cls']
                 params = inp_obj['params']
-                mapper = inp_obj['mapper']
-                aggregator = inp_obj['aggregator']
-                reducer = inp_obj['reducer']
                 number_of_trajectories = inp_obj['number_of_trajectories']
                 store_realizations = inp_obj['store_realizations']
 
-                sweep = molnsutil.ParameterSweep(model_class=model_cls, parameters=params, qsub=True,
+                sweep = molnsutil.ParameterSweep(pickled_cluster_input_file=pickled_cluster_input_file,
+                                                 parameters=params, qsub=True,
                                                  storage_mode="Local")
-                result = sweep.run(mapper=mapper, aggregator=aggregator, reducer=reducer,
-                                   number_of_trajectories=number_of_trajectories, store_realizations=store_realizations,
+                result = sweep.run(number_of_trajectories=number_of_trajectories, store_realizations=store_realizations,
                                    progress_bar=False, store_realizations_dir=storage_dir)
 
                 with open(cluster_exec_output_file, "wb") as out:
@@ -54,7 +50,8 @@ if __name__ == "__main__":
     run_job(logs=os.path.join(base_job_dir, "molns_exec_helper_logs"),
             cluster_exec_input_file=os.path.join(base_job_dir, "cluster-exec-input-file"),
             cluster_exec_output_file=os.path.join(base_job_dir, "cluster-exec-output-file"),
-            storage_dir=realizations_dir)
+            storage_dir=realizations_dir,
+            pickled_cluster_input_file=os.path.join(base_job_dir, "pickled-cluster-input-file"))
 
     with open(os.path.join(base_job_dir, "cluster-exec-job-complete"), 'w+') as comp:
         comp.write("Job completed.")

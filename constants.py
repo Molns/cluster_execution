@@ -1,6 +1,7 @@
 import os
 
 ClusterJobFilePrefix = "cluster-input-job-"
+PickledClusterInputFile = "pickled-cluster-input-file"
 ClusterJobsScratchDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".cluster-jobs-scratch-directory")
 MolnsExecHelper = os.path.join(os.path.dirname(os.path.abspath(__file__)), "molns_exec_helper.py")
 ConfigDir = ".molns"

@@ -7,7 +7,7 @@ import inspect
 import cluster_execution_exceptions
 from remote_execution import RemoteJob, create_new_id
 from cluster_deploy import ClusterDeploy
-from utils import Log
+from utils import Log, create_pickled_cluster_input_file
 
 
 class ClusterParameterSweep:
@@ -45,16 +45,20 @@ class ClusterParameterSweep:
             os.makedirs(input_file_dir)
 
         # Write job input file.
-        input_data = {'model_cls': self.model_cls, 'params': self.parameters, 'mapper': mapper, 'aggregator': aggregator
-            , 'reducer': reducer, 'number_of_trajectories': number_of_trajectories,
+        input_data = {'params': self.parameters, 'number_of_trajectories': number_of_trajectories,
                       'store_realizations': store_realizations}
 
         input_file_path = os.path.join(input_file_dir, constants.ClusterExecInputFile)
         with open(input_file_path, "wb") as input_file:
             cloudpickle.dump(input_data, input_file)
 
-        remote_job = RemoteJob(input_file=input_file_path, date=str(datetime.datetime.now()),
-                               remote_host=self.remote_host, remote_job_id=job_id, local_scratch_dir=input_file_dir)
+        pickled_cluster_input_file = os.path.join(input_file_dir, constants.PickledClusterInputFile)
+        create_pickled_cluster_input_file(storage_path=pickled_cluster_input_file, mapper=mapper, aggregator=aggregator,
+                                          model_class=self.model_cls, reducer=reducer)
+
+        remote_job = RemoteJob(input_files=[input_file_path, pickled_cluster_input_file],
+                               date=str(datetime.datetime.now()), remote_host=self.remote_host, remote_job_id=job_id,
+                               local_scratch_dir=input_file_dir)
 
         # Deploy remote job.
         self.cluster_deploy.deploy_job_to_cluster(remote_job)

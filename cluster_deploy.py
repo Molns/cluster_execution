@@ -13,7 +13,8 @@ class ClusterDeploy:
     @staticmethod
     def __get_files_to_transfer(remote_job):
         import constants
-        files_to_transfer = [constants.MolnsExecHelper, remote_job.input_file]
+        files_to_transfer = [constants.MolnsExecHelper]
+        files_to_transfer.extend(remote_job.input_files)
         Log.write_log("Files to transfer: {0}".format(files_to_transfer))
         return files_to_transfer
 
