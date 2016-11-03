@@ -52,6 +52,7 @@ class ClusterParameterSweep:
         with open(input_file_path, "wb") as input_file:
             cloudpickle.dump(input_data, input_file)
 
+        # Create pickled_cluster_input_file.
         pickled_cluster_input_file = os.path.join(input_file_dir, constants.PickledClusterInputFile)
         create_pickled_cluster_input_file(storage_path=pickled_cluster_input_file, mapper=mapper, aggregator=aggregator,
                                           model_class=self.model_cls, reducer=reducer)
