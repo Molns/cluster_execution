@@ -15,7 +15,6 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                 sys.path.append(lib_path)
 
                 import molnsutil
-                from molnsutil import molns_cloudpickle
 
                 with open(cluster_exec_input_file, "rb") as inp:
                     inp_obj = pickle.load(inp)
@@ -31,7 +30,7 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                                    progress_bar=False, store_realizations_dir=storage_dir)
 
                 with open(cluster_exec_output_file, "wb") as out:
-                    molns_cloudpickle.dump(result, out)
+                    out.write(result)
 
             except Exception as e:
                 stdout_fh.write('Error: {0}\nLib path: {1}\nstorage_dir={2}\n'.format(str(e), lib_path, storage_dir))
