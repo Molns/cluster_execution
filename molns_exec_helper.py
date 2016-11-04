@@ -14,7 +14,8 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                 lib_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                 sys.path.append(lib_path)
 
-                from molnsutil import molnsutil, molns_cloudpickle
+                import molnsutil
+                from molnsutil import molns_cloudpickle
 
                 with open(cluster_exec_input_file, "rb") as inp:
                     inp_obj = pickle.load(inp)
