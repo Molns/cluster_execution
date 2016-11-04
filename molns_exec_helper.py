@@ -29,7 +29,7 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                 result = sweep.run(number_of_trajectories=number_of_trajectories, store_realizations=store_realizations,
                                    progress_bar=False, store_realizations_dir=storage_dir)
 
-                with open(cluster_exec_output_file, "wb") as out:
+                with open(cluster_exec_output_file, "w") as out:
                     out.write(result)
 
             except Exception as e:
