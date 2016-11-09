@@ -2,7 +2,7 @@ import os
 import utils
 import constants
 from utils import Log
-from molns.MolnsLib.ssh_deploy.ssh import SSH, SSHException
+from molns.MolnsLib.ssh import SSH, SSHException
 
 
 class ClusterDeploy:
