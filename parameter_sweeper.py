@@ -39,6 +39,9 @@ class ParameterSweep(ClusterParameterSweep):
         print "Job submitted. Waiting for results to be computed..."
         while True:
             try:
-                return self.get_sweep_result(remote_job)
+                results = self.get_sweep_result(remote_job)
+                print "Results computed. Cleaning up..."
+                self.clean_up(remote_job)
+                return results
             except RemoteJobNotFinished:
                 time.sleep(1)
