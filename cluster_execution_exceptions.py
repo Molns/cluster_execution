@@ -16,3 +16,7 @@ class UnknownScratchDir(Exception):
 
 class ReferencedModuleException(Exception):
     pass
+
+
+class IncorrectRemoteHostSpec(Exception):
+    pass
