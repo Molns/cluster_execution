@@ -49,6 +49,8 @@ class ClusterDeploy:
             sftp = self.ssh.open_sftp()
 
             for f in files_to_transfer:
+                if f is None:
+                    continue
                 utils.Log.write_log('Uploading file {0}'.format(f))
                 sftp.put(f, "{0}/{1}".format(base_path, os.path.basename(f)))
 

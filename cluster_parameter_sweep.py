@@ -27,7 +27,8 @@ class ClusterParameterSweep:
                                                "parameters be defined in the same module as the caller."
                                                .format(ingredient.__module__))
 
-    def run_async(self, mapper, aggregator=None, reducer=None, number_of_trajectories=None, store_realizations=True):
+    def run_async(self, mapper=None, aggregator=None, reducer=None, number_of_trajectories=None, store_realizations=True,
+                  add_realizations=False):
         """ Creates a new remote_job and deploys it on the cluster. Returns RemoteJob deployed. """
 
         # Verify that given parameters are not referenced from other modules, as that produces referenced cloudpickling.
@@ -36,7 +37,6 @@ class ClusterParameterSweep:
         calling_module_name = calling_module.__name__ if calling_module is not None else None
         ClusterParameterSweep.check_ingredients_to_be_pickled(self.model_cls, mapper, aggregator, reducer,
                                                               module_name=calling_module_name)
-
         # Create new remote job.
         job_id = create_new_id()
 
@@ -44,16 +44,21 @@ class ClusterParameterSweep:
         if not os.path.exists(input_file_dir):
             os.makedirs(input_file_dir)
 
+        if add_realizations is False:
+            input_data = {'params': self.parameters, 'number_of_trajectories': number_of_trajectories,
+                          'store_realizations': store_realizations}
+        else:
+            input_data = {'number_of_trajectories': number_of_trajectories, 'add_realizations': True}
+
         # Write job input file.
-        input_data = {'params': self.parameters, 'number_of_trajectories': number_of_trajectories,
-                      'store_realizations': store_realizations}
         input_file_path = os.path.join(input_file_dir, constants.ClusterExecInputFile)
         with open(input_file_path, "wb") as input_file:
             cloudpickle.dump(input_data, input_file)
 
         # Create pickled_cluster_input_file.
         pickled_cluster_input_file = os.path.join(input_file_dir, constants.PickledClusterInputFile)
-        create_pickled_cluster_input_file(storage_path=pickled_cluster_input_file, mapper=mapper, aggregator=aggregator,
+        create_pickled_cluster_input_file(storage_path=pickled_cluster_input_file, mapper=mapper,
+                                          aggregator=aggregator,
                                           model_class=self.model_cls, reducer=reducer)
 
         remote_job = RemoteJob(input_files=[input_file_path, pickled_cluster_input_file],
@@ -91,6 +96,16 @@ class ClusterParameterSweep:
 
     def clean_up(self, remote_job):
         self.cluster_deploy.clean_up(remote_job)
+
+    def get_results(self, remote_job):
+        import time
+        while True:
+            try:
+                results = self.get_sweep_result(remote_job)
+                self.clean_up(remote_job)
+                return results
+            except cluster_execution_exceptions.RemoteJobNotFinished:
+                time.sleep(1)
 
     # Unused, but may be useful in the future.
     @staticmethod

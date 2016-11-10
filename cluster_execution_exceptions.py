@@ -20,3 +20,7 @@ class ReferencedModuleException(Exception):
 
 class IncorrectRemoteHostSpec(Exception):
     pass
+
+
+class ClusterExecutionException(Exception):
+    pass

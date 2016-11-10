@@ -1,8 +1,7 @@
-import time
 import os
 from cluster_parameter_sweep import ClusterParameterSweep
 from remote_execution import RemoteHost
-from cluster_execution_exceptions import IncorrectRemoteHostSpec, RemoteJobNotFinished
+from cluster_execution_exceptions import IncorrectRemoteHostSpec, ClusterExecutionException
 
 
 remote_host_address = None
@@ -36,12 +35,18 @@ class ParameterSweep(ClusterParameterSweep):
         remote_job = self.run_async(mapper=mapper, reducer=reducer, aggregator=aggregator,
                                     store_realizations=store_realizations,
                                     number_of_trajectories=number_of_trajectories)
-        print "Job submitted. Waiting for results to be computed..."
-        while True:
-            try:
-                results = self.get_sweep_result(remote_job)
-                print "Results computed. Cleaning up..."
-                self.clean_up(remote_job)
-                return results
-            except RemoteJobNotFinished:
-                time.sleep(1)
+        print "Waiting for results to be computed..."
+        return self.get_results(remote_job)
+
+
+class DistributedEnsemble(ClusterParameterSweep):
+    def __init__(self, model_class):
+        ClusterParameterSweep.__init__(model_cls=model_class, parameters=None, remote_host=get_remote_host())
+
+    def add_realizations(self, number_of_trajectories=None):
+        if number_of_trajectories is None:
+            raise ClusterExecutionException("Number of trajectories cannot be None.")
+
+        remote_job = self.run_async(add_realizations=True)
+        print "Generating {0} realizations...".format(number_of_trajectories)
+        return self.get_results(remote_job)
