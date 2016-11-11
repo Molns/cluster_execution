@@ -29,7 +29,8 @@ def get_remote_host():
 
 class ParameterSweep(ClusterParameterSweep):
     def __init__(self, model_class=None, parameters=None):
-        ClusterParameterSweep.__init__(model_cls=model_class, parameters=parameters, remote_host=get_remote_host())
+        ClusterParameterSweep.__init__(self, model_cls=model_class, parameters=parameters,
+                                       remote_host=get_remote_host())
 
     def run(self, mapper=None, reducer=None, aggregator=None, store_realizations=False, number_of_trajectories=None):
         remote_job = self.run_async(mapper=mapper, reducer=reducer, aggregator=aggregator,
@@ -41,12 +42,12 @@ class ParameterSweep(ClusterParameterSweep):
 
 class DistributedEnsemble(ClusterParameterSweep):
     def __init__(self, model_class):
-        ClusterParameterSweep.__init__(model_cls=model_class, parameters=None, remote_host=get_remote_host())
+        ClusterParameterSweep.__init__(self, model_cls=model_class, parameters=None, remote_host=get_remote_host())
 
     def add_realizations(self, number_of_trajectories=None):
         if number_of_trajectories is None:
             raise ClusterExecutionException("Number of trajectories cannot be None.")
 
-        remote_job = self.run_async(add_realizations=True)
+        remote_job = self.run_async(number_of_trajectories=number_of_trajectories, add_realizations=True)
         print "Generating {0} realizations...".format(number_of_trajectories)
         return self.get_results(remote_job)

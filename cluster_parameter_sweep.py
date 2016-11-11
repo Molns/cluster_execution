@@ -82,7 +82,8 @@ class ClusterParameterSweep:
         if job_status == constants.RemoteJobFailed:
             job_logs = self.cluster_deploy.get_job_logs(remote_job)
             raise cluster_execution_exceptions.RemoteJobFailed("Failed to do parameter sweep. Logs:\n{0}"
-                                                               .format(job_logs))
+                                                               "\n\nnView job logs on the submit node for additional "
+                                                               "information.".format(job_logs))
 
         if remote_job.local_scratch_dir is None:
             raise cluster_execution_exceptions.UnknownScratchDir("The job has finished. However, the local "

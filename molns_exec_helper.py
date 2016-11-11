@@ -38,7 +38,7 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                     result = ensemble.add_realizations(number_of_trajectories=number_of_trajectories)
 
                 with open(cluster_exec_output_file, "w") as out:
-                    out.write(result)
+                    out.write("{0}".format(result))
 
             except Exception as e:
                 stdout_fh.write('Error: {0}\nLib path: {1}\nstorage_dir={2}\n'.format(str(e), lib_path, storage_dir))
