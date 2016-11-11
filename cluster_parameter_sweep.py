@@ -35,8 +35,8 @@ class ClusterParameterSweep:
         calling_module = inspect.getmodule(inspect.stack()[1][0])
         Log.write_log("Caller module: {0}".format(calling_module))
         calling_module_name = calling_module.__name__ if calling_module is not None else None
-        ClusterParameterSweep.check_ingredients_to_be_pickled(self.model_cls, mapper, aggregator, reducer,
-                                                              module_name=calling_module_name)
+        #ClusterParameterSweep.check_ingredients_to_be_pickled(self.model_cls, mapper, aggregator, reducer,
+        #                                                      module_name=calling_module_name)
         # Create new remote job.
         job_id = create_new_id()
 

@@ -37,6 +37,16 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                                                              qsub=True, storage_mode="Local")
                     result = ensemble.add_realizations(number_of_trajectories=number_of_trajectories)
 
+                    old_storage_dir = result['realizations_directory']
+                    # Copy generated realizations from temporary directory to job directory.
+                    result['realizations_directory'] = molnsutil.utils.copy_generated_realizations_to_job_directory(
+                        realizations_storage_directory=old_storage_dir,
+                        store_realizations_dir=storage_dir)
+
+                    if len(os.listdir(result['realizations_directory'])) == 0:
+                        raise Exception("Something went wrong while generating realizations. "
+                                        "Please check {0} for detailed logs.".format(old_storage_dir))
+
                 with open(cluster_exec_output_file, "w") as out:
                     out.write("{0}".format(result))
 
