@@ -115,7 +115,7 @@ class ClusterDeploy:
                 Log.write_log("Remote process already dead.")
 
             # Remove the job directory on the remote server.
-            self.ssh.exec_command("rm -r {0}".format(base_path))
+            self.ssh.exec_command("rm -rf {0}".format(base_path))
 
             # Clear out scratch directory entries.
             os.rmdir(remote_job.local_scratch_dir)
