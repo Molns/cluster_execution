@@ -72,7 +72,7 @@ class ClusterParameterSweep:
 
         return remote_job
 
-    def get_sweep_result(self, remote_job):
+    def get_sweep_result(self, remote_job, add_realizations=False):
         """ Returns job results if computed successfully. """
         job_status = self.cluster_deploy.job_status(remote_job)
 
@@ -93,16 +93,20 @@ class ClusterParameterSweep:
         self.cluster_deploy.fetch_remote_job_file(remote_job, constants.ClusterExecOutputFile,
                                                   remote_job.local_scratch_dir)
 
-        return cloudpickle.load(os.path.join(remote_job.local_scratch_dir, constants.ClusterExecOutputFile))
+        if add_realizations is False:
+            return cloudpickle.load(os.path.join(remote_job.local_scratch_dir, constants.ClusterExecOutputFile))
+        else:
+            with open(os.path.join(remote_job.local_scratch_dir, constants.ClusterExecOutputFile), "r") as f:
+                return f.read()
 
     def clean_up(self, remote_job):
         self.cluster_deploy.clean_up(remote_job)
 
-    def get_results(self, remote_job):
+    def get_results(self, remote_job, add_realizations=False):
         import time
         while True:
             try:
-                results = self.get_sweep_result(remote_job)
+                results = self.get_sweep_result(remote_job, add_realizations=add_realizations)
                 self.clean_up(remote_job)
                 return results
             except cluster_execution_exceptions.RemoteJobNotFinished:

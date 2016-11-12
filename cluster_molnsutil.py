@@ -50,4 +50,4 @@ class DistributedEnsemble(ClusterParameterSweep):
 
         remote_job = self.run_async(number_of_trajectories=number_of_trajectories, add_realizations=True)
         print "Generating {0} realizations...".format(number_of_trajectories)
-        return self.get_results(remote_job)
+        return self.get_results(remote_job, add_realizations=True)
