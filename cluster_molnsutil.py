@@ -30,22 +30,9 @@ def get_remote_host():
                       secret_key_file=remote_host_secret_key_file, port=remote_host_ssh_port)
 
 
-class ParameterSweep(ClusterParameterSweep):
-    def __init__(self, model_class=None, parameters=None):
-        ClusterParameterSweep.__init__(self, model_cls=model_class, parameters=parameters,
-                                       remote_host=get_remote_host())
-
-    def run(self, mapper=None, reducer=None, aggregator=None, store_realizations=False, number_of_trajectories=None):
-        remote_job = self.run_async(mapper=mapper, reducer=reducer, aggregator=aggregator,
-                                    store_realizations=store_realizations,
-                                    number_of_trajectories=number_of_trajectories)
-        print "Waiting for results to be computed..."
-        return self.get_results(remote_job)
-
-
 class DistributedEnsemble(ClusterParameterSweep):
-    def __init__(self, model_class):
-        ClusterParameterSweep.__init__(self, model_cls=model_class, parameters=None, remote_host=get_remote_host())
+    def __init__(self, model_class, parameters=None):
+        ClusterParameterSweep.__init__(self, model_cls=model_class, parameters=parameters, remote_host=get_remote_host())
 
     def add_realizations(self, number_of_trajectories=None):
         if number_of_trajectories is None:
@@ -54,6 +41,13 @@ class DistributedEnsemble(ClusterParameterSweep):
         remote_job = self.run_async(number_of_trajectories=number_of_trajectories, add_realizations=True)
         print "Generating {0} realizations...".format(number_of_trajectories)
         return self.get_results(remote_job, add_realizations=True)
+
+    def run(self, mapper, reducer=None, aggregator=None, store_realizations=False, number_of_trajectories=None):
+        remote_job = self.run_async(mapper=mapper, reducer=reducer, aggregator=aggregator,
+                                    store_realizations=store_realizations,
+                                    number_of_trajectories=number_of_trajectories)
+        print "Waiting for results to be computed..."
+        return self.get_results(remote_job)
 
     def mean_variance(self, mapper, realizations_storage_directory):
         """ Compute the mean and variance (second order central moment) of the function g(X) based on
@@ -73,3 +67,8 @@ class DistributedEnsemble(ClusterParameterSweep):
                                     realizations_storage_directory=realizations_storage_directory)
         print "Waiting for results to be computed..."
         return self.get_results(remote_job)
+
+
+class ParameterSweep(DistributedEnsemble):
+    def __init__(self, model_class=None, parameters=None):
+        DistributedEnsemble.__init__(self, model_class=model_class, parameters=parameters)

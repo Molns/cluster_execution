@@ -16,6 +16,7 @@ class ClusterParameterSweep:
         self.parameters = parameters
         self.remote_host = remote_host
         self.cluster_deploy = ClusterDeploy(remote_host)
+        self.job_logs = None
 
     @staticmethod
     def check_ingredients_to_be_pickled(*ingredients, **kwargs):
@@ -83,15 +84,21 @@ class ClusterParameterSweep:
             raise cluster_execution_exceptions.RemoteJobNotFinished("The parameter sweep has not finished yet.")
 
         if job_status == constants.RemoteJobFailed:
-            job_logs = self.cluster_deploy.get_job_logs(remote_job)
+            self.job_logs = self.cluster_deploy.get_job_logs(remote_job)
             raise cluster_execution_exceptions.RemoteJobFailed("Failed to do parameter sweep. Logs:\n{0}"
-                                                               "\n\nView job logs on the submit node for additional "
-                                                               "information.".format(job_logs))
+                                                               "\n\nFor additional information, print: "
+                                                               "job_logs.failed_job_working_directory"
+                                                               "job_logs.job_directories"
+                                                               "job_logs.successful_jobs"
+                                                               "job_logs.completed_jobs\nUse function"
+                                                               " cluster_deploy.fetch_remote_job_file(remote_job, "
+                                                               "remote_file_name, local_file_path) to fetch a remote "
+                                                               "log file.".format(self.job_logs["logs"]))
 
         if remote_job.local_scratch_dir is None:
             raise cluster_execution_exceptions.UnknownScratchDir("The job has finished. However, the local "
                                                                  "scratch directory is unknown for this job. Please set"
-                                                                 " remote_job.local_scratch_dir")
+                                                                 " remote_job.local_scratch_dir.")
 
         self.cluster_deploy.fetch_remote_job_file(remote_job, constants.ClusterExecOutputFile,
                                                   remote_job.local_scratch_dir)
