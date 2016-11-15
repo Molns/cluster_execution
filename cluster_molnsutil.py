@@ -2,11 +2,12 @@ import os
 from cluster_parameter_sweep import ClusterParameterSweep
 from remote_execution import RemoteHost
 from cluster_execution_exceptions import IncorrectRemoteHostSpec, ClusterExecutionException
+from molns.MolnsLib.constants import Constants
 
 
 remote_host_address = None
 remote_host_username = None
-remote_host_secret_key_file = None
+remote_host_secret_key_file = Constants.ClusterKeyFileNameOnController
 remote_host_ssh_port = 22
 
 

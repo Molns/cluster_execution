@@ -1,6 +1,7 @@
 import os
 import utils
 import constants
+import shutil
 from utils import Log
 from molns.MolnsLib.ssh import SSH, SSHException
 
@@ -118,7 +119,7 @@ class ClusterDeploy:
             self.ssh.exec_command("rm -rf {0}".format(base_path))
 
             # Clear out scratch directory entries.
-            os.rmdir(remote_job.local_scratch_dir)
+            shutil.rmtree(remote_job.local_scratch_dir)
         finally:
             self.ssh.close()
 

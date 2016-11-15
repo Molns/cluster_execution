@@ -107,7 +107,8 @@ class ClusterParameterSweep:
         while True:
             try:
                 results = self.get_sweep_result(remote_job, add_realizations=add_realizations)
-                self.clean_up(remote_job)
+                if add_realizations is False:
+                    self.clean_up(remote_job)
                 return results
             except cluster_execution_exceptions.RemoteJobNotFinished:
                 time.sleep(1)
