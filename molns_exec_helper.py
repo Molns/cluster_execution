@@ -21,18 +21,7 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
 
                 number_of_trajectories = inp_obj['number_of_trajectories']
 
-                if not inp_obj.get('add_realizations', False):
-                    params = inp_obj['params']
-                    store_realizations = inp_obj['store_realizations']
-
-                    sweep = molnsutil.ParameterSweep(pickled_cluster_input_file=pickled_cluster_input_file,
-                                                     parameters=params, qsub=True,
-                                                     storage_mode="Local")
-                    result = sweep.run(number_of_trajectories=number_of_trajectories,
-                                       store_realizations=store_realizations, progress_bar=False,
-                                       store_realizations_dir=storage_dir)
-
-                else:
+                if inp_obj.get('add_realizations', False):
                     ensemble = molnsutil.DistributedEnsemble(pickled_cluster_input_file=pickled_cluster_input_file,
                                                              qsub=True, storage_mode="Local")
                     result = ensemble.add_realizations(number_of_trajectories=number_of_trajectories)
@@ -46,6 +35,26 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                     if len(os.listdir(result['realizations_directory'])) == 0:
                         raise Exception("Something went wrong while generating realizations. "
                                         "Please check {0} for detailed logs.".format(old_storage_dir))
+
+                elif inp_obj.get('realizations_storage_directory', False):
+                    ensemble = molnsutil.DistributedEnsemble(pickled_cluster_input_file=pickled_cluster_input_file,
+                                                             qsub=True, storage_mode="Local")
+                    mapped_results = ensemble.qsub_map_aggregate_stored_realizations(
+                        pickled_cluster_input_file=pickled_cluster_input_file,
+                        realizations_storage_directory=inp_obj.get('realizations_storage_dir'))
+                    result = ensemble.run_reducer(pickled_cluster_input_file=pickled_cluster_input_file,
+                                                  mapped_results=mapped_results)
+
+                else:
+                    params = inp_obj['params']
+                    store_realizations = inp_obj['store_realizations']
+
+                    sweep = molnsutil.ParameterSweep(pickled_cluster_input_file=pickled_cluster_input_file,
+                                                     parameters=params, qsub=True,
+                                                     storage_mode="Local")
+                    result = sweep.run(number_of_trajectories=number_of_trajectories,
+                                       store_realizations=store_realizations, progress_bar=False,
+                                       store_realizations_dir=storage_dir)
 
                 with open(cluster_exec_output_file, "w") as out:
                     out.write("{0}".format(result))

@@ -27,16 +27,17 @@ class ClusterParameterSweep:
                                                "parameters be defined in the same module as the caller."
                                                .format(ingredient.__module__))
 
-    def run_async(self, mapper=None, aggregator=None, reducer=None, number_of_trajectories=None, store_realizations=True,
-                  add_realizations=False):
+    def run_async(self, mapper=None, aggregator=None, reducer=None, number_of_trajectories=None,
+                  store_realizations=True, add_realizations=False, realizations_storage_directory=None):
         """ Creates a new remote_job and deploys it on the cluster. Returns RemoteJob deployed. """
 
         # Verify that given parameters are not referenced from other modules, as that produces referenced cloudpickling.
         calling_module = inspect.getmodule(inspect.stack()[1][0])
         Log.write_log("Caller module: {0}".format(calling_module))
-        calling_module_name = calling_module.__name__ if calling_module is not None else None
-        #ClusterParameterSweep.check_ingredients_to_be_pickled(self.model_cls, mapper, aggregator, reducer,
+        # calling_module_name = calling_module.__name__ if calling_module is not None else None
+        # ClusterParameterSweep.check_ingredients_to_be_pickled(self.model_cls, mapper, aggregator, reducer,
         #                                                      module_name=calling_module_name)
+
         # Create new remote job.
         job_id = create_new_id()
 
@@ -44,11 +45,13 @@ class ClusterParameterSweep:
         if not os.path.exists(input_file_dir):
             os.makedirs(input_file_dir)
 
-        if add_realizations is False:
-            input_data = {'params': self.parameters, 'number_of_trajectories': number_of_trajectories,
-                          'store_realizations': store_realizations}
-        else:
-            input_data = {'number_of_trajectories': number_of_trajectories, 'add_realizations': True}
+        # Set input data according to the operation being performed.
+        input_data = {'number_of_trajectories': number_of_trajectories, 'params': self.parameters,
+                      'store_realizations': store_realizations}
+        if add_realizations is True:
+            input_data['add_realizations'] = True
+        if realizations_storage_directory is not None:
+            input_data['realizations_storage_directory'] = realizations_storage_directory
 
         # Write job input file.
         input_file_path = os.path.join(input_file_dir, constants.ClusterExecInputFile)
