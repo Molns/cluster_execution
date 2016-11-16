@@ -84,7 +84,8 @@ class ClusterParameterSweep:
             raise cluster_execution_exceptions.RemoteJobNotFinished("The parameter sweep has not finished yet.")
 
         if job_status == constants.RemoteJobFailed:
-            self.job_logs = self.cluster_deploy.get_job_logs(remote_job)
+            import json
+            self.job_logs = json.loads(self.cluster_deploy.get_job_logs(remote_job))
             raise cluster_execution_exceptions.RemoteJobFailed("Failed to do parameter sweep. Logs:\n{0}"
                                                                "\n\nFor additional information, print: "
                                                                "job_logs.failed_job_working_directory"

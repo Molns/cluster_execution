@@ -41,7 +41,8 @@ class DistributedEnsemble(ClusterParameterSweep):
 
         remote_job = self.run_async(number_of_trajectories=number_of_trajectories, add_realizations=True)
         print "Generating {0} realizations...".format(number_of_trajectories)
-        res = self.get_results(remote_job, add_realizations=True)
+        import json
+        res = json.loads(self.get_results(remote_job, add_realizations=True))
         self.realizations_storage_dir = res["realizations_directory"]
         return res
 
