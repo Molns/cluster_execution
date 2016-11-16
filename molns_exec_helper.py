@@ -24,7 +24,8 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                 if inp_obj.get('add_realizations', False):
                     ensemble = molnsutil.DistributedEnsemble(pickled_cluster_input_file=pickled_cluster_input_file,
                                                              qsub=True, storage_mode="Local")
-                    result = ensemble.add_realizations(number_of_trajectories=number_of_trajectories)
+                    import json
+                    result = json.loads(ensemble.add_realizations(number_of_trajectories=number_of_trajectories))
 
                     old_storage_dir = result['realizations_directory']
                     # Copy generated realizations from temporary directory to job directory.
