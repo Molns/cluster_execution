@@ -58,7 +58,7 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                                        store_realizations_dir=storage_dir)
 
                 with open(cluster_exec_output_file, "w") as out:
-                    out.write(result)
+                    out.write(str(result))
 
             except Exception as e:
                 stdout_fh.write('Error: {0}\nLib path: {1}\nstorage_dir={2}\n'.format(str(e), lib_path, storage_dir))
