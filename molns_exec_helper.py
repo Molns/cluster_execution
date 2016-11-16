@@ -27,15 +27,18 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                     import json
                     result = json.loads(ensemble.add_realizations(number_of_trajectories=number_of_trajectories))
 
-                    old_storage_dir = result['realizations_directory']
+                    old_storage_dir = result["realizations_directory"]
                     # Copy generated realizations from temporary directory to job directory.
-                    result['realizations_directory'] = molnsutil.utils.copy_generated_realizations_to_job_directory(
+                    result["realizations_directory"] = molnsutil.utils.copy_generated_realizations_to_job_directory(
                         realizations_storage_directory=old_storage_dir,
                         store_realizations_dir=storage_dir)
 
-                    if len(os.listdir(result['realizations_directory'])) == 0:
-                        raise Exception("Something went wrong while generating realizations. "
-                                        "Please check {0} for detailed logs.".format(old_storage_dir))
+                    if len(os.listdir(result["realizations_directory"])) == 0:
+                        from molnsutil.utils import jsonify
+                        raise Exception(jsonify(logs="Something went wrong while generating realizations. "
+                                        "Please check {0} for detailed logs.".format(old_storage_dir)))
+
+                    result = json.dumps(result)
 
                 elif inp_obj.get('realizations_storage_directory', False):
                     ensemble = molnsutil.DistributedEnsemble(pickled_cluster_input_file=pickled_cluster_input_file,
@@ -58,7 +61,7 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                                        store_realizations_dir=storage_dir)
 
                 with open(cluster_exec_output_file, "w") as out:
-                    out.write(str(result))
+                    out.write(result)
 
             except Exception as e:
                 stdout_fh.write('Error: {0}\nLib path: {1}\nstorage_dir={2}\n'.format(str(e), lib_path, storage_dir))
