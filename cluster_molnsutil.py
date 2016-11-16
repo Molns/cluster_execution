@@ -33,6 +33,7 @@ def get_remote_host():
 class DistributedEnsemble(ClusterParameterSweep):
     def __init__(self, model_class, parameters=None):
         ClusterParameterSweep.__init__(self, model_cls=model_class, parameters=parameters, remote_host=get_remote_host())
+        self.realizations_storage_dir = None
 
     def add_realizations(self, number_of_trajectories=None):
         if number_of_trajectories is None:
@@ -40,7 +41,9 @@ class DistributedEnsemble(ClusterParameterSweep):
 
         remote_job = self.run_async(number_of_trajectories=number_of_trajectories, add_realizations=True)
         print "Generating {0} realizations...".format(number_of_trajectories)
-        return self.get_results(remote_job, add_realizations=True)
+        res = self.get_results(remote_job, add_realizations=True)
+        self.realizations_storage_dir = res["realizations_directory"]
+        return res
 
     def run(self, mapper, reducer=None, aggregator=None, store_realizations=False, number_of_trajectories=None):
         remote_job = self.run_async(mapper=mapper, reducer=reducer, aggregator=aggregator,
@@ -49,9 +52,11 @@ class DistributedEnsemble(ClusterParameterSweep):
         print "Waiting for results to be computed..."
         return self.get_results(remote_job)
 
-    def mean_variance(self, mapper, realizations_storage_directory):
+    def mean_variance(self, mapper, realizations_storage_directory=None):
         """ Compute the mean and variance (second order central moment) of the function g(X) based on
         number_of_trajectories realizations in the ensemble. """
+
+        realizations_storage_directory = self.__get_realizations_storage_directory(realizations_storage_directory)
 
         remote_job = self.run_async(mapper=mapper, aggregator=builtin_aggregator_sum_and_sum2,
                                     reducer=builtin_reducer_mean_variance,
@@ -59,14 +64,23 @@ class DistributedEnsemble(ClusterParameterSweep):
         print "Waiting for results to be computed..."
         return self.get_results(remote_job)
 
-    def mean(self, mapper, realizations_storage_directory):
+    def mean(self, mapper, realizations_storage_directory=None):
         """ Compute the mean of the function g(X) based on number_of_trajectories realizations
             in the ensemble. It has to make sense to say g(result1)+g(result2). """
+
+        realizations_storage_directory = self.__get_realizations_storage_directory(realizations_storage_directory)
 
         remote_job = self.run_async(mapper=mapper, aggregator=builtin_aggregator_add, reducer=builtin_reducer_mean,
                                     realizations_storage_directory=realizations_storage_directory)
         print "Waiting for results to be computed..."
         return self.get_results(remote_job)
+
+    def __get_realizations_storage_directory(self, directory):
+        if directory is not None:
+            return directory
+        if self.realizations_storage_dir is None:
+            raise ClusterExecutionException("Something went wrong. Unknown realizations storage directory.")
+        return self.realizations_storage_dir
 
 
 class ParameterSweep(DistributedEnsemble):
