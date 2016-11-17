@@ -99,7 +99,7 @@ class DistributedEnsemble(ClusterParameterSweep):
                 return self.realizations_storage_dir
             return directory
         if self.realizations_storage_dir is None:
-            raise ClusterExecutionException("Something went wrong. Unknown realizations storage directory.")
+            raise ClusterExecutionException("Unknown realizations storage directory.")
         return self.realizations_storage_dir
 
     @staticmethod

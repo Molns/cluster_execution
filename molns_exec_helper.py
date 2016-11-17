@@ -65,8 +65,7 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                     out.write(result)
 
             except Exception as e:
-                stdout_fh.write('Error: {0}\nLib path: {1}\nstorage_dir={2}\n'.format(str(e), lib_path, storage_dir))
-                stdout_fh.write(traceback.format_exc())
+                stdout_fh.write("{0}".format(e))
 
 
 if __name__ == "__main__":
