@@ -12,6 +12,14 @@ def create_pickled_cluster_input_file(storage_path, mapper=None, aggregator=None
         molns_cloudpickle.dump(unpickled_list, input_file)
 
 
+def format_result_list_dict(result_list):
+    for key in result_list.keys():
+        result_list[int(key)] = result_list[key]
+        result_list.pop(key)
+
+    return result_list
+
+
 class Log:
     verbose = True
 

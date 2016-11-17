@@ -3,6 +3,7 @@ from cluster_parameter_sweep import ClusterParameterSweep
 from remote_execution import RemoteHost
 from cluster_execution_exceptions import IncorrectRemoteHostSpec, ClusterExecutionException
 from molns.MolnsLib.constants import Constants
+from utils import format_result_list_dict
 from molnsutil.utils import builtin_aggregator_sum_and_sum2, builtin_reducer_mean_variance, builtin_aggregator_add, \
     builtin_reducer_mean
 
@@ -46,7 +47,7 @@ class DistributedEnsemble(ClusterParameterSweep):
         import json
         res = json.loads(self.get_results(self.remote_job, add_realizations=True))
         self.realizations_storage_dir = res["realizations_directory"]
-        self.result_list = res["result_list"]
+        self.result_list = format_result_list_dict(res["result_list"])
         return res
 
     def run(self, mapper=None, reducer=None, aggregator=None, store_realizations=False, number_of_trajectories=None):
