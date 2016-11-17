@@ -34,6 +34,7 @@ class DistributedEnsemble(ClusterParameterSweep):
     def __init__(self, model_class, parameters=None):
         ClusterParameterSweep.__init__(self, model_cls=model_class, parameters=parameters, remote_host=get_remote_host())
         self.realizations_storage_dir = None
+        self.result_list = None
         self.remote_job = None
 
     def add_realizations(self, number_of_trajectories=None):
@@ -45,6 +46,7 @@ class DistributedEnsemble(ClusterParameterSweep):
         import json
         res = json.loads(self.get_results(self.remote_job, add_realizations=True))
         self.realizations_storage_dir = res["realizations_directory"]
+        self.result_list = res["result_list"]
         return res
 
     def run(self, mapper=None, reducer=None, aggregator=None, store_realizations=False, number_of_trajectories=None):
@@ -65,7 +67,8 @@ class DistributedEnsemble(ClusterParameterSweep):
 
         self.remote_job = self.run_async(mapper=mapper, aggregator=builtin_aggregator_sum_and_sum2,
                                          reducer=builtin_reducer_mean_variance,
-                                         realizations_storage_directory=realizations_storage_directory)
+                                         realizations_storage_directory=realizations_storage_directory,
+                                         result_list=self.result_list)
         print "Waiting for results to be computed..."
         return self.get_results(self.remote_job)
 
@@ -78,7 +81,8 @@ class DistributedEnsemble(ClusterParameterSweep):
         realizations_storage_directory = self.__get_realizations_storage_directory(realizations_storage_directory)
 
         self.remote_job = self.run_async(mapper=mapper, aggregator=builtin_aggregator_add, reducer=builtin_reducer_mean,
-                                         realizations_storage_directory=realizations_storage_directory)
+                                         realizations_storage_directory=realizations_storage_directory,
+                                         result_list=self.result_list)
         print "Waiting for results to be computed..."
         return self.get_results(self.remote_job)
 
@@ -87,6 +91,10 @@ class DistributedEnsemble(ClusterParameterSweep):
 
     def __get_realizations_storage_directory(self, directory):
         if directory is not None:
+            if self.result_list is not None:
+                print "Cannot use provided realizations_storage_directory. Using {0}"\
+                    .format(self.realizations_storage_dir)
+                return self.realizations_storage_dir
             return directory
         if self.realizations_storage_dir is None:
             raise ClusterExecutionException("Something went wrong. Unknown realizations storage directory.")

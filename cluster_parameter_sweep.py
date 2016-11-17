@@ -28,7 +28,7 @@ class ClusterParameterSweep:
                                                "parameters be defined in the same module as the caller."
                                                .format(ingredient.__module__))
 
-    def run_async(self, mapper=None, aggregator=None, reducer=None, number_of_trajectories=None,
+    def run_async(self, mapper=None, aggregator=None, reducer=None, number_of_trajectories=None, result_list=None,
                   store_realizations=True, add_realizations=False, realizations_storage_directory=None):
         """ Creates a new remote_job and deploys it on the cluster. Returns RemoteJob deployed. """
 
@@ -52,6 +52,7 @@ class ClusterParameterSweep:
         if add_realizations is True:
             input_data['add_realizations'] = True
         if realizations_storage_directory is not None:
+            input_data["result_list"] = result_list
             input_data['realizations_storage_directory'] = realizations_storage_directory
 
         # Write job input file.

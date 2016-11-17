@@ -45,7 +45,8 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                                                              qsub=True, storage_mode="Local")
                     mapped_results = ensemble.qsub_map_aggregate_stored_realizations(
                         pickled_cluster_input_file=pickled_cluster_input_file,
-                        realizations_storage_directory=inp_obj.get('realizations_storage_directory'))
+                        realizations_storage_directory=inp_obj.get('realizations_storage_directory'),
+                        result_list=inp_obj.get("result_list"))
                     result = ensemble.run_reducer(pickled_cluster_input_file=pickled_cluster_input_file,
                                                   mapped_results=mapped_results)
 
