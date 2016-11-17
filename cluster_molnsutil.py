@@ -87,8 +87,8 @@ class DistributedEnsemble(ClusterParameterSweep):
         print "Waiting for results to be computed..."
         return self.get_results(self.remote_job)
 
-    def clean_up(self):
-        ClusterParameterSweep.clean_up(self, remote_job=self.remote_job)
+    def clean_up_temporary_files(self):
+        self.clean_up(remote_job=self.remote_job)
 
     def __get_realizations_storage_directory(self, directory):
         if directory is not None:
