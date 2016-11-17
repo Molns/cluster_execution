@@ -84,17 +84,25 @@ class ClusterParameterSweep:
             raise cluster_execution_exceptions.RemoteJobNotFinished("The parameter sweep has not finished yet.")
 
         if job_status == constants.RemoteJobFailed:
-            import json
-            self.job_logs = json.loads(self.cluster_deploy.get_job_logs(remote_job))
-            raise cluster_execution_exceptions.RemoteJobFailed("Failed to do parameter sweep. Logs:\n{0}"
-                                                               "\n\nFor additional information, print: "
-                                                               "job_logs.failed_job_working_directory"
-                                                               "job_logs.job_directories"
-                                                               "job_logs.successful_jobs"
-                                                               "job_logs.completed_jobs\nUse function"
-                                                               " cluster_deploy.fetch_remote_job_file(remote_job, "
-                                                               "remote_file_name, local_file_path) to fetch a remote "
-                                                               "log file.".format(self.job_logs["logs"]))
+            self.job_logs = self.cluster_deploy.get_job_logs(remote_job)
+            try:
+                import json
+                self.job_logs = json.loads(self.job_logs)
+                print_log = self.job_logs.get("logs", json.dumps(self.job_logs))
+                raise cluster_execution_exceptions.RemoteJobFailed("Failed to do parameter sweep. Logs:\n{0}"
+                                                                   "\n\nFor additional information, print: "
+                                                                   "job_logs.failed_job_working_directory"
+                                                                   "job_logs.job_directories"
+                                                                   "job_logs.successful_jobs"
+                                                                   "job_logs.completed_jobs\nUse function"
+                                                                   " cluster_deploy.fetch_remote_job_file(remote_job, "
+                                                                   "remote_file_name, local_file_path) to fetch a "
+                                                                   "remote log file.".format(print_log))
+            except ValueError:
+                raise cluster_execution_exceptions.RemoteJobFailed("Failed to do parameter sweep. Logs:\n{0}"
+                                                                   "\n\nFailed to parse job logs. Please ssh into the "
+                                                                   "submit node and view job working directory for more"
+                                                                   " logs.".format(self.job_logs))
 
         if remote_job.local_scratch_dir is None:
             raise cluster_execution_exceptions.UnknownScratchDir("The job has finished. However, the local "
