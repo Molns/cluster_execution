@@ -144,6 +144,6 @@ class ClusterDeploy:
                                           key_filename=remote_job.remote_host.secret_key_file)
 
             self.ssh.exec_command("mv {0}/* {1}/".format(remote_copy_from_dir, remote_copy_to_dir))
-            self.ssh.exec_command("rm -r {0}".format(remote_copy_from_dir))
+            self.ssh.exec_command("rm -r {0}".format(os.path.dirname(remote_copy_from_dir)))
         finally:
             self.ssh.close()
