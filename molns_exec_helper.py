@@ -40,12 +40,12 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
 
                     result = json.dumps(result)
 
-                elif inp_obj.get('realizations_storage_directory', False):
+                elif inp_obj.get('realizations_storage_directory', None) is not None:
                     ensemble = molnsutil.DistributedEnsemble(pickled_cluster_input_file=pickled_cluster_input_file,
                                                              qsub=True, storage_mode="Local")
                     mapped_results = ensemble.qsub_map_aggregate_stored_realizations(
                         pickled_cluster_input_file=pickled_cluster_input_file,
-                        realizations_storage_directory=inp_obj.get('realizations_storage_dir'))
+                        realizations_storage_directory=inp_obj.get('realizations_storage_directory'))
                     result = ensemble.run_reducer(pickled_cluster_input_file=pickled_cluster_input_file,
                                                   mapped_results=mapped_results)
 
