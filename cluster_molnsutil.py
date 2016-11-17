@@ -36,27 +36,28 @@ class DistributedEnsemble(ClusterParameterSweep):
         ClusterParameterSweep.__init__(self, model_cls=model_class, parameters=parameters, remote_host=get_remote_host())
         self.realizations_storage_dir = None
         self.result_list = None
-        self.remote_job = None
+        self.realizations_job = None
 
     def add_realizations(self, number_of_trajectories=None):
         if number_of_trajectories is None:
             raise ClusterExecutionException("Number of trajectories cannot be None.")
 
-        self.remote_job = self.run_async(number_of_trajectories=number_of_trajectories, add_realizations=True)
+        self.realizations_job = self.run_async(number_of_trajectories=number_of_trajectories, add_realizations=True)
         print "Generating {0} realizations...".format(number_of_trajectories)
         import json
-        res = json.loads(self.get_results(self.remote_job, add_realizations=True))
+        res = json.loads(self.get_results(self.realizations_job, add_realizations=True))
         self.realizations_storage_dir = res["realizations_directory"]
         self.result_list = format_result_list_dict(res["result_list"])
         return res
 
     def run(self, mapper=None, reducer=None, aggregator=None, store_realizations=False, number_of_trajectories=None):
         mapper = DistributedEnsemble.__get_mapper(mapper)
-        self.remote_job = self.run_async(mapper=mapper, reducer=reducer, aggregator=aggregator,
-                                         store_realizations=store_realizations,
-                                         number_of_trajectories=number_of_trajectories)
+        reducer = DistributedEnsemble.__get_reducer(reducer)
+        remote_job = self.run_async(mapper=mapper, reducer=reducer, aggregator=aggregator,
+                                    store_realizations=store_realizations,
+                                    number_of_trajectories=number_of_trajectories)
         print "Waiting for results to be computed..."
-        return self.get_results(self.remote_job)
+        return self.get_results(remote_job)
 
     def mean_variance(self, mapper=None, realizations_storage_directory=None):
         """ Compute the mean and variance (second order central moment) of the function g(X) based on
@@ -66,12 +67,12 @@ class DistributedEnsemble(ClusterParameterSweep):
 
         realizations_storage_directory = self.__get_realizations_storage_directory(realizations_storage_directory)
 
-        self.remote_job = self.run_async(mapper=mapper, aggregator=builtin_aggregator_sum_and_sum2,
-                                         reducer=builtin_reducer_mean_variance,
-                                         realizations_storage_directory=realizations_storage_directory,
-                                         result_list=self.result_list)
+        remote_job = self.run_async(mapper=mapper, aggregator=builtin_aggregator_sum_and_sum2,
+                                    reducer=builtin_reducer_mean_variance,
+                                    realizations_storage_directory=realizations_storage_directory,
+                                    result_list=self.result_list)
         print "Waiting for results to be computed..."
-        return self.get_results(self.remote_job)
+        return self.get_results(remote_job)
 
     def mean(self, mapper=None, realizations_storage_directory=None):
         """ Compute the mean of the function g(X) based on number_of_trajectories realizations
@@ -81,14 +82,14 @@ class DistributedEnsemble(ClusterParameterSweep):
 
         realizations_storage_directory = self.__get_realizations_storage_directory(realizations_storage_directory)
 
-        self.remote_job = self.run_async(mapper=mapper, aggregator=builtin_aggregator_add, reducer=builtin_reducer_mean,
-                                         realizations_storage_directory=realizations_storage_directory,
-                                         result_list=self.result_list)
+        remote_job = self.run_async(mapper=mapper, aggregator=builtin_aggregator_add, reducer=builtin_reducer_mean,
+                                    realizations_storage_directory=realizations_storage_directory,
+                                    result_list=self.result_list)
         print "Waiting for results to be computed..."
-        return self.get_results(self.remote_job)
+        return self.get_results(remote_job)
 
-    def clean_up_temporary_files(self):
-        self.clean_up(remote_job=self.remote_job)
+    def clean_up_generated_realizations(self):
+        self.clean_up(remote_job=self.realizations_job)
 
     def __get_realizations_storage_directory(self, directory):
         if directory is not None:
@@ -107,6 +108,13 @@ class DistributedEnsemble(ClusterParameterSweep):
             return mapper
         else:
             raise ClusterExecutionException("No default mapper available. Please specify one.")
+
+    @staticmethod
+    def __get_reducer(reducer):
+        if reducer is not None:
+            return reducer
+        else:
+            raise ClusterExecutionException("No default reducer available. Please specify one.")
 
 
 class ParameterSweep(DistributedEnsemble):
