@@ -113,7 +113,7 @@ class DistributedEnsemble(ClusterParameterSweep):
                                             "realizations first.")
 
         if len(self.result_list[0]) < number_of_trajectories:
-            number_of_trajectories_required = len(self.result_list[0]) - number_of_trajectories
+            number_of_trajectories_required = number_of_trajectories - len(self.result_list[0])
 
             print "Generating {0} trajectories...".format(number_of_trajectories_required)
 
