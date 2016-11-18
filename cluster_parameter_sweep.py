@@ -92,10 +92,10 @@ class ClusterParameterSweep:
                 print_log = self.job_logs.get("logs", json.dumps(self.job_logs))
                 raise cluster_execution_exceptions.RemoteJobFailed("Failed to do parameter sweep. Logs:\n{0}"
                                                                    "\n\nFor additional information, print: "
-                                                                   "job_logs.failed_job_working_directory"
-                                                                   "job_logs.job_directories"
-                                                                   "job_logs.successful_jobs"
-                                                                   "job_logs.completed_jobs\nUse function"
+                                                                   "\njob_logs.failed_job_working_directory"
+                                                                   "\njob_logs.job_directories"
+                                                                   "\njob_logs.successful_jobs"
+                                                                   "\njob_logs.completed_jobs\nUse function"
                                                                    " cluster_deploy.fetch_remote_job_file(remote_job, "
                                                                    "remote_file_name, local_file_path) to fetch a "
                                                                    "remote log file.".format(print_log))
