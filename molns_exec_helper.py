@@ -60,7 +60,7 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                                        store_realizations_dir=storage_dir)
 
                 with open(cluster_exec_output_file, "w") as out:
-                    out.write(json.dumps(result))
+                    out.write("{0}".format(result))
 
             except Exception as e:
                 stdout_fh.write("{0} \n\n {1}".format(e, traceback.format_exc()))
