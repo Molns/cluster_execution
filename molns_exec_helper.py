@@ -2,6 +2,7 @@
 
 # This program executes on a cluster.
 import traceback
+import json
 import pickle
 import sys
 import os
@@ -24,7 +25,6 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                 if inp_obj.get('add_realizations', False):
                     ensemble = molnsutil.DistributedEnsemble(pickled_cluster_input_file=pickled_cluster_input_file,
                                                              qsub=True, storage_mode="Local")
-                    import json
                     result = json.loads(ensemble.add_realizations(number_of_trajectories=number_of_trajectories))
 
                     old_storage_dir = result["realizations_directory"]
@@ -37,8 +37,6 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                         from molnsutil.utils import jsonify
                         raise Exception(jsonify(logs="Something went wrong while generating realizations. "
                                         "Please check {0} for detailed logs.".format(old_storage_dir)))
-
-                    result = json.dumps(result)
 
                 elif inp_obj.get('realizations_storage_directory', None) is not None:
                     ensemble = molnsutil.DistributedEnsemble(pickled_cluster_input_file=pickled_cluster_input_file,
@@ -62,10 +60,10 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                                        store_realizations_dir=storage_dir)
 
                 with open(cluster_exec_output_file, "w") as out:
-                    out.write(result)
+                    out.write(json.dumps(result))
 
             except Exception as e:
-                stdout_fh.write("{0}".format(e))
+                stdout_fh.write("{0} \n\n {1}".format(e, traceback.format_exc()))
 
 
 if __name__ == "__main__":
