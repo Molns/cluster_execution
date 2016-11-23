@@ -10,7 +10,6 @@ import os
 
 def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_cluster_input_file, storage_dir=None):
         with open(logs, 'w') as stdout_fh:
-            lib_path = ""
             try:
                 lib_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                 sys.path.append(lib_path)

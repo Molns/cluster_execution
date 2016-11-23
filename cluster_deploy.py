@@ -2,6 +2,7 @@ import os
 import utils
 import constants
 import shutil
+import logging
 from utils import Log
 from molns.MolnsLib.ssh import SSH, SSHException
 
@@ -16,7 +17,7 @@ class ClusterDeploy:
         import constants
         files_to_transfer = [constants.MolnsExecHelper]
         files_to_transfer.extend(remote_job.input_files)
-        Log.write_log("Files to transfer: {0}".format(files_to_transfer))
+        logging.info("Files to transfer: {0}".format(files_to_transfer))
         return files_to_transfer
 
     @staticmethod
@@ -24,9 +25,9 @@ class ClusterDeploy:
         try:
             sftp = ssh.open_sftp()
             sftp.stat(os.path.join(base_path, 'molnsutil'))
-            Log.write_log("molnsutil exists remotely.")
+            logging.info("molnsutil exists remotely.")
         except (IOError, OSError):
-            Log.write_log("Installing molnsutil in {0}".format(base_path))
+            logging.info("Installing molnsutil in {0}".format(base_path))
             ssh.exec_command("""cd {0};
             wget https://github.com/aviral26/molnsutil/archive/qsub_support.zip;
             unzip qsub_support.zip;
@@ -52,13 +53,13 @@ class ClusterDeploy:
             for f in files_to_transfer:
                 if f is None:
                     continue
-                utils.Log.write_log('Uploading file {0}'.format(f))
+                logging.info('Uploading file {0}'.format(f))
                 sftp.put(f, "{0}/{1}".format(base_path, os.path.basename(f)))
 
             # execute command
-            utils.Log.write_log("Executing command..")
+            logging.info("Executing command..")
             self.ssh.exec_command("cd {0}; python {1} &".format(base_path, os.path.basename(constants.MolnsExecHelper)))
-            utils.Log.write_log("Job started.")
+            print "Job started."
         finally:
             self.ssh.close()
 
@@ -113,7 +114,7 @@ class ClusterDeploy:
             try:
                 self.ssh.exec_command("kill -TERM `cat {0}/pid` > /dev/null 2&>1".format(base_path))
             except SSHException:
-                Log.write_log("Remote process already dead.")
+                logging.info("Remote process already dead.")
 
             # Remove the job directory on the remote server.
             self.ssh.exec_command("rm -rf {0}".format(base_path))

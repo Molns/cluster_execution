@@ -22,11 +22,21 @@ def format_result_list_dict(result_list):
 
 class Log:
     verbose = True
+    Info = 0
+    Debug = 1
+    Error = 2
 
     def __init__(self):
         pass
 
     @staticmethod
-    def write_log(message):
+    def write_log(message, level=Debug):
         if Log.verbose:
-            print message
+            if level == Log.Debug:
+                print "DEBUG  " + message
+            if level == Log.Error:
+                import sys
+                import datetime
+                sys.stderr.write("\nERROR  {0} ".format(datetime.datetime()) + message)
+            if level == Log.Info:
+                print message

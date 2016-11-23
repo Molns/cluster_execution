@@ -5,6 +5,7 @@ import constants
 import sys
 import inspect
 import cluster_execution_exceptions
+import logging
 from remote_execution import RemoteJob, create_new_id
 from cluster_deploy import ClusterDeploy
 from utils import Log, create_pickled_cluster_input_file
@@ -34,7 +35,7 @@ class ClusterParameterSweep:
 
         # Verify that given parameters are not referenced from other modules, as that produces referenced cloudpickling.
         calling_module = inspect.getmodule(inspect.stack()[1][0])
-        Log.write_log("Caller module: {0}".format(calling_module))
+        logging.info("Caller module: {0}".format(calling_module))
         # calling_module_name = calling_module.__name__ if calling_module is not None else None
         # ClusterParameterSweep.check_ingredients_to_be_pickled(self.model_cls, mapper, aggregator, reducer,
         #                                                      module_name=calling_module_name)
@@ -73,7 +74,7 @@ class ClusterParameterSweep:
         # Deploy remote job.
         self.cluster_deploy.deploy_job_to_cluster(remote_job)
 
-        Log.write_log("Deployed\n{0}".format(str(remote_job)))
+        logging.info("Deployed\n{0}".format(str(remote_job)))
 
         return remote_job
 
