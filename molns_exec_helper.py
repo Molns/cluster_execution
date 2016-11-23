@@ -38,6 +38,8 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                         raise Exception(jsonify(logs="Something went wrong while generating realizations. "
                                         "Please check {0} for detailed logs.".format(old_storage_dir)))
 
+                    result = json.dumps(result)
+
                 elif inp_obj.get('realizations_storage_directory', None) is not None:
                     ensemble = molnsutil.DistributedEnsemble(pickled_cluster_input_file=pickled_cluster_input_file,
                                                              qsub=True, storage_mode="Local")
