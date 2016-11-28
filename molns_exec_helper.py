@@ -82,6 +82,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger("molns_exec_helper")
     logger.addHandler(logging.FileHandler(filename=log_file))
+    logger.setLevel(logging.DEBUG)
 
     run_job(logs=log_file, cluster_exec_input_file=os.path.join(base_job_dir, "cluster-exec-input-file"),
             cluster_exec_output_file=os.path.join(base_job_dir, "cluster-exec-output-file"),
