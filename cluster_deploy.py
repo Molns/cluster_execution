@@ -95,7 +95,10 @@ class ClusterDeploy:
                                           port=remote_job.remote_host.port, username=remote_job.remote_host.username,
                                           key_filename=remote_job.remote_host.secret_key_file)
             sftp = self.ssh.open_sftp()
-            log = sftp.file(os.path.join(base_path, constants.ClusterExecLogsFile), 'r')
+            try:
+                log = sftp.file(os.path.join(base_path, constants.ClusterExecInfoLogsFile), 'r')
+            except (OSError, IOError):
+                log = sftp.file(os.path.join(base_path, constants.ClusterExecSuperLogsFile), 'r')
             log.seek(seek)
             output = log.read()
             return output
