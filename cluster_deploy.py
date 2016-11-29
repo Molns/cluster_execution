@@ -103,7 +103,7 @@ class ClusterDeploy:
             self.ssh.close()
 
     def clean_up(self, remote_job):
-        """ Delete remote job, local and remote scratch dirs. """
+        """ Delete remote job and remote scratch dirs. """
         base_path = os.path.join(constants.MolnsClusterExecutionDir, remote_job.id)
         try:
             self.ssh.connect_cluster_node(ip_address=remote_job.remote_host.ip_address,
@@ -118,9 +118,6 @@ class ClusterDeploy:
 
             # Remove the job directory on the remote server.
             self.ssh.exec_command("rm -rf {0}".format(base_path))
-
-            # Clear out scratch directory entries.
-            shutil.rmtree(remote_job.local_scratch_dir)
         finally:
             self.ssh.close()
 

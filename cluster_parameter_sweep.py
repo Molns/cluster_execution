@@ -6,9 +6,10 @@ import sys
 import inspect
 import cluster_execution_exceptions
 import logging
+import shutil
 from remote_execution import RemoteJob, create_new_id
 from cluster_deploy import ClusterDeploy
-from utils import Log, create_pickled_cluster_input_file
+from utils import create_pickled_cluster_input_file
 
 
 class ClusterParameterSweep:
@@ -101,10 +102,16 @@ class ClusterParameterSweep:
                                                   remote_job.local_scratch_dir)
 
         if add_realizations is False:
-            return cloudpickle.load(os.path.join(remote_job.local_scratch_dir, constants.ClusterExecOutputFile))
+            ret_val = cloudpickle.load(os.path.join(remote_job.local_scratch_dir, constants.ClusterExecOutputFile))
         else:
             with open(os.path.join(remote_job.local_scratch_dir, constants.ClusterExecOutputFile), "r") as f:
-                return f.read()
+                ret_val = f.read()
+
+        # Clear out scratch directory entries.
+        logging.info("Clearing out local scratch directory: {0}".format(remote_job.local_scratch_dir))
+        shutil.rmtree(remote_job.local_scratch_dir)
+
+        return ret_val
 
     def clean_up(self, remote_job):
         self.cluster_deploy.clean_up(remote_job)
