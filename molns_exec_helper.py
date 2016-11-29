@@ -66,7 +66,7 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
 
         except Exception as e:
             with open(logs, 'w') as stdout_fh:
-                stdout_fh.write("\n\n ----------------------------------------------------------- \n\n {0}".format(e))
+                stdout_fh.write("\n\n ----------------------------------------------------------- \n\n {0}\n".format(e))
 
 
 if __name__ == "__main__":
