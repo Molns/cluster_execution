@@ -88,7 +88,7 @@ class ClusterParameterSweep:
 
         if job_status == constants.RemoteJobFailed:
             self.job_logs = self.cluster_deploy.get_job_logs(remote_job)
-            raise cluster_execution_exceptions.RemoteJobFailed("Failed to do parameter sweep. Logs:\n{0}"
+            raise cluster_execution_exceptions.RemoteJobFailed("Failed to perform task. Logs:\n{0}"
                                                                "\nUse function cluster_deploy.fetch_remote_job_file"
                                                                "(remote_job, remote_file_name, local_file_path) to "
                                                                "fetch a remote log file.".format(self.job_logs))
