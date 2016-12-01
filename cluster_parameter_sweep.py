@@ -13,6 +13,9 @@ from utils import create_pickled_cluster_input_file
 
 
 class ClusterParameterSweep:
+
+    failed_remote_job = None
+
     def __init__(self, model_cls, parameters, remote_host):
         self.model_cls = model_cls
         self.parameters = parameters
@@ -79,6 +82,13 @@ class ClusterParameterSweep:
 
         return remote_job
 
+    def fetch_debug_logs(self):
+        """ Fetch the debug logs of a failed RemoteJob."""
+        if ClusterParameterSweep.failed_remote_job is None:
+            raise cluster_execution_exceptions.ClusterExecutionException("Something went wrong. Unknown failed remote "
+                                                                         "job.")
+        return self.cluster_deploy.get_job_debug_logs(ClusterParameterSweep.failed_remote_job)
+
     def get_sweep_result(self, remote_job, add_realizations=False):
         """ Returns job results if computed successfully. """
         job_status = self.cluster_deploy.job_status(remote_job)
@@ -88,15 +98,15 @@ class ClusterParameterSweep:
 
         if job_status == constants.RemoteJobFailed:
             self.job_logs = self.cluster_deploy.get_job_logs(remote_job)
+            ClusterParameterSweep.failed_remote_job = remote_job
             raise cluster_execution_exceptions.RemoteJobFailed("Failed to perform task. Logs:\n{0}"
-                                                               "\nUse function cluster_deploy.fetch_remote_job_file"
-                                                               "(remote_job, remote_file_name, local_file_path) to "
-                                                               "fetch a remote log file.".format(self.job_logs))
+                                                               "\nUse function fetch_debug_logs() to fetch the debug "
+                                                               "logs.".format(self.job_logs))
 
         if remote_job.local_scratch_dir is None:
             raise cluster_execution_exceptions.UnknownScratchDir("The job has finished. However, the local "
-                                                                 "scratch directory is unknown for this job. Please set"
-                                                                 " remote_job.local_scratch_dir.")
+                                                                 "scratch directory is unknown for this job. Unable to "
+                                                                 "fetch results.")
 
         self.cluster_deploy.fetch_remote_job_file(remote_job, constants.ClusterExecOutputFile,
                                                   remote_job.local_scratch_dir)

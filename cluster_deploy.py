@@ -86,6 +86,21 @@ class ClusterDeploy:
         finally:
             self.ssh.close()
 
+    def get_job_debug_logs(self, remote_job, seek=0):
+        base_path = os.path.join(constants.MolnsClusterExecutionDir, remote_job.id)
+        try:
+            self.ssh.connect_cluster_node(ip_address=remote_job.remote_host.ip_address,
+                                          port=remote_job.remote_host.port, username=remote_job.remote_host.username,
+                                          key_filename=remote_job.remote_host.secret_key_file)
+            sftp = self.ssh.open_sftp()
+            log = sftp.file(os.path.join(base_path, constants.ClusterExecDebugLogsFile), 'r')
+            log.seek(seek)
+            return log.read()
+        except (OSError, IOError) as e:
+            return "Debug log file not found.", e
+        finally:
+            self.ssh.close()
+
     def get_job_logs(self, remote_job, seek=0):
         """ Get molns_exec_helper debug logs.
         Takes input remote_execution.RemoteJob object, and an option location to read logs from. """
@@ -95,7 +110,7 @@ class ClusterDeploy:
                                           port=remote_job.remote_host.port, username=remote_job.remote_host.username,
                                           key_filename=remote_job.remote_host.secret_key_file)
             sftp = self.ssh.open_sftp()
-            output = "\n**********Error**********\n"
+            output = "\n**********Error***********\n"
 
             try:
                 log = sftp.file(os.path.join(base_path, constants.ClusterExecSuperLogsFile), 'r')
@@ -108,6 +123,8 @@ class ClusterDeploy:
                 log.seek(seek)
                 output += "\n**********Job logs**********\n"
                 output += log.read()
+                output += "\n****************************\n"
+
             except (OSError, IOError):
                 pass
 
