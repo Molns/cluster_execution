@@ -16,13 +16,14 @@ class ClusterParameterSweep:
 
     failed_remote_job = None
 
-    def __init__(self, model_cls, parameters, remote_host, num_engines=None):
+    def __init__(self, model_cls, parameters, remote_host, num_engines=None, is_parameter_sweep=False):
         self.model_cls = model_cls
         self.parameters = parameters
         self.remote_host = remote_host
         self.cluster_deploy = ClusterDeploy(remote_host)
         self.job_logs = None
         self.num_engines = num_engines
+        self.is_parameter_sweep = is_parameter_sweep
 
     @staticmethod
     def check_ingredients_to_be_pickled(*ingredients, **kwargs):
@@ -54,7 +55,8 @@ class ClusterParameterSweep:
 
         # Set input data according to the operation being performed.
         input_data = {'number_of_trajectories': number_of_trajectories, 'params': self.parameters,
-                      'store_realizations': store_realizations}
+                      'store_realizations': store_realizations, 'num_engines': self.num_engines,
+                      'is_parameter_sweep': self.is_parameter_sweep}
         if add_realizations is True:
             input_data['add_realizations'] = True
         if realizations_storage_directory is not None:
@@ -73,6 +75,7 @@ class ClusterParameterSweep:
                                           model_class=self.model_cls, reducer=reducer)
 
         remote_job = RemoteJob(input_files=[input_file_path, pickled_cluster_input_file],
+                               is_parameter_sweep=self.is_parameter_sweep,
                                date=str(datetime.datetime.now()), remote_host=self.remote_host, remote_job_id=job_id,
                                local_scratch_dir=input_file_dir, num_engines=self.num_engines)
 

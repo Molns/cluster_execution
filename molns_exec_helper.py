@@ -8,7 +8,7 @@ import os
 
 
 def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_cluster_input_file, storage_dir=None,
-            log_filename=None, num_engines=None):
+            log_filename=None):
         try:
             lib_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             sys.path.append(lib_path)
@@ -19,6 +19,14 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                 inp_obj = pickle.load(inp)
 
             number_of_trajectories = inp_obj['number_of_trajectories']
+            num_engines = int(inp_obj['num_engines'])
+            is_parameter_sweep = inp_obj['is_parameter_sweep']
+
+            if type(is_parameter_sweep) is not bool or type(num_engines) is not int:
+                raise Exception("Unexpected type. is_parameter_sweep = {0}, type(is_parameter_sweep) = {1}, "
+                                "num_engines = {2}, type(num_engines) = {3}".format(is_parameter_sweep,
+                                                                                    type(is_parameter_sweep),
+                                                                                    num_engines, type(num_engines)))
 
             if inp_obj.get('add_realizations', False):
                 ensemble = molnsutil.DistributedEnsemble(pickled_cluster_input_file=pickled_cluster_input_file,
@@ -54,9 +62,15 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                 params = inp_obj['params']
                 store_realizations = inp_obj['store_realizations']
 
-                sweep = molnsutil.ParameterSweep(pickled_cluster_input_file=pickled_cluster_input_file,
-                                                 parameters=params, qsub=True, log_filename=log_filename,
-                                                 storage_mode="Local", num_engines=num_engines)
+                if is_parameter_sweep:
+                    sweep = molnsutil.ParameterSweep(pickled_cluster_input_file=pickled_cluster_input_file,
+                                                     parameters=params, qsub=True, log_filename=log_filename,
+                                                     storage_mode="Local", num_engines=num_engines)
+                else:
+                    sweep = molnsutil.DistributedEnsemble(pickled_cluster_input_file=pickled_cluster_input_file,
+                                                          parameters=params, qsub=True, log_filename=log_filename,
+                                                          storage_mode="Local", num_engines=num_engines)
+
                 result = sweep.run(number_of_trajectories=number_of_trajectories,
                                    store_realizations=store_realizations, progress_bar=False,
                                    store_realizations_dir=storage_dir)
@@ -76,12 +90,6 @@ if __name__ == "__main__":
     realizations_dir = os.path.join(base_job_dir, "realizations")
     log_filename = os.path.join(base_job_dir, "molns_exec_helper.log")
 
-    import sys
-    try:
-        engines = sys.argv[1]
-    except IndexError as e:
-        engines = None
-
     if not os.path.exists(realizations_dir):
         os.mkdir(realizations_dir)
 
@@ -90,7 +98,7 @@ if __name__ == "__main__":
 
     run_job(logs=log_filename, cluster_exec_input_file=os.path.join(base_job_dir, "cluster-exec-input-file"),
             cluster_exec_output_file=os.path.join(base_job_dir, "cluster-exec-output-file"),
-            storage_dir=realizations_dir, log_filename=log_filename, num_engines=engines,
+            storage_dir=realizations_dir, log_filename=log_filename,
             pickled_cluster_input_file=os.path.join(base_job_dir, "pickled-cluster-input-file"))
 
     with open(os.path.join(base_job_dir, "cluster-exec-job-complete"), 'w+') as comp:

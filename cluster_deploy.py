@@ -58,9 +58,10 @@ class ClusterDeploy:
 
             # execute command
             logging.info("Executing command..")
-            self.ssh.exec_command("cd {0}; python {1} {2} &".format(base_path,
-                                                                    os.path.basename(constants.MolnsExecHelper),
-                                                                    remote_job.num_engines))
+            self.ssh.exec_command("cd {0}; python {1} {2} {3} &".format(base_path,
+                                                                        os.path.basename(constants.MolnsExecHelper),
+                                                                        remote_job.num_engines,
+                                                                        remote_job.is_parameter_sweep))
             print "Job started."
         finally:
             self.ssh.close()

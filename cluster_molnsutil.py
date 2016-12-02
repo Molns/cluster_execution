@@ -34,9 +34,9 @@ class DistributedEnsemble(ClusterParameterSweep):
     """A wrapper class for performing computation on the cluster.
     This API provided here is the same as molnsutil DistributedEnsemble."""
 
-    def __init__(self, model_class, parameters=None):
-        ClusterParameterSweep.__init__(self, model_cls=model_class, parameters=parameters,
-                                       remote_host=get_remote_host())
+    def __init__(self, model_class, parameters=None, is_parameter_sweep=False, num_engines=None):
+        ClusterParameterSweep.__init__(self, model_cls=model_class, parameters=parameters, num_engines=num_engines,
+                                       remote_host=get_remote_host(), is_parameter_sweep=is_parameter_sweep)
         self.realizations_storage_dir = None
         self.result_list = None
         self.realizations_job = None
@@ -154,5 +154,6 @@ class DistributedEnsemble(ClusterParameterSweep):
 
 
 class ParameterSweep(DistributedEnsemble):
-    def __init__(self, model_class=None, parameters=None):
-        DistributedEnsemble.__init__(self, model_class=model_class, parameters=parameters)
+    def __init__(self, model_class=None, parameters=None, num_engines=None):
+        DistributedEnsemble.__init__(self, model_class=model_class, parameters=parameters, num_engines=num_engines,
+                                     is_parameter_sweep=True)
