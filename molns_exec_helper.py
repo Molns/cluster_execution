@@ -19,10 +19,12 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
                 inp_obj = pickle.load(inp)
 
             number_of_trajectories = inp_obj['number_of_trajectories']
-            num_engines = int(inp_obj['num_engines'])
+            num_engines = inp_obj['num_engines']
+            if num_engines is not None:
+                num_engines = int(num_engines)
             is_parameter_sweep = inp_obj['is_parameter_sweep']
 
-            if type(is_parameter_sweep) is not bool or type(num_engines) is not int:
+            if type(is_parameter_sweep) is not bool or (num_engines is not None and type(num_engines) is not int):
                 raise Exception("Unexpected type. is_parameter_sweep = {0}, type(is_parameter_sweep) = {1}, "
                                 "num_engines = {2}, type(num_engines) = {3}".format(is_parameter_sweep,
                                                                                     type(is_parameter_sweep),
