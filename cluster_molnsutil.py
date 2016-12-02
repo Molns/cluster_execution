@@ -155,5 +155,5 @@ class DistributedEnsemble(ClusterParameterSweep):
 
 class ParameterSweep(DistributedEnsemble):
     def __init__(self, model_class=None, parameters=None, num_engines=None):
-        DistributedEnsemble.__init__(self, model_class=model_class, parameters=parameters, num_engines=num_engines,
-                                     is_parameter_sweep=True)
+        DistributedEnsemble.__init__(self, model_class=model_class, parameters=parameters, is_parameter_sweep=True,
+                                     num_engines=num_engines)

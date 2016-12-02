@@ -16,7 +16,7 @@ class ClusterParameterSweep:
 
     failed_remote_job = None
 
-    def __init__(self, model_cls, parameters, remote_host, num_engines=None, is_parameter_sweep=False):
+    def __init__(self, model_cls, parameters, remote_host, num_engines=None, is_parameter_sweep=True):
         self.model_cls = model_cls
         self.parameters = parameters
         self.remote_host = remote_host
