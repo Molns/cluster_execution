@@ -16,12 +16,13 @@ class ClusterParameterSweep:
 
     failed_remote_job = None
 
-    def __init__(self, model_cls, parameters, remote_host):
+    def __init__(self, model_cls, parameters, remote_host, num_engines=None):
         self.model_cls = model_cls
         self.parameters = parameters
         self.remote_host = remote_host
         self.cluster_deploy = ClusterDeploy(remote_host)
         self.job_logs = None
+        self.num_engines = num_engines
 
     @staticmethod
     def check_ingredients_to_be_pickled(*ingredients, **kwargs):
@@ -73,7 +74,7 @@ class ClusterParameterSweep:
 
         remote_job = RemoteJob(input_files=[input_file_path, pickled_cluster_input_file],
                                date=str(datetime.datetime.now()), remote_host=self.remote_host, remote_job_id=job_id,
-                               local_scratch_dir=input_file_dir)
+                               local_scratch_dir=input_file_dir, num_engines=self.num_engines)
 
         # Deploy remote job.
         self.cluster_deploy.deploy_job_to_cluster(remote_job)

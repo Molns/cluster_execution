@@ -8,7 +8,7 @@ import os
 
 
 def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_cluster_input_file, storage_dir=None,
-            log_filename=None):
+            log_filename=None, num_engines=None):
         try:
             lib_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             sys.path.append(lib_path)
@@ -22,7 +22,7 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
 
             if inp_obj.get('add_realizations', False):
                 ensemble = molnsutil.DistributedEnsemble(pickled_cluster_input_file=pickled_cluster_input_file,
-                                                         qsub=True, storage_mode="Local",
+                                                         qsub=True, storage_mode="Local", num_engines=num_engines,
                                                          log_filename=log_filename)
                 result = json.loads(ensemble.add_realizations(number_of_trajectories=number_of_trajectories))
 
@@ -41,7 +41,7 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
 
             elif inp_obj.get('realizations_storage_directory', None) is not None:
                 ensemble = molnsutil.DistributedEnsemble(pickled_cluster_input_file=pickled_cluster_input_file,
-                                                         qsub=True, storage_mode="Local",
+                                                         qsub=True, storage_mode="Local", num_engines=num_engines,
                                                          log_filename=log_filename)
                 mapped_results = ensemble.qsub_map_aggregate_stored_realizations(
                     pickled_cluster_input_file=pickled_cluster_input_file,
@@ -56,7 +56,7 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
 
                 sweep = molnsutil.ParameterSweep(pickled_cluster_input_file=pickled_cluster_input_file,
                                                  parameters=params, qsub=True, log_filename=log_filename,
-                                                 storage_mode="Local")
+                                                 storage_mode="Local", num_engines=num_engines)
                 result = sweep.run(number_of_trajectories=number_of_trajectories,
                                    store_realizations=store_realizations, progress_bar=False,
                                    store_realizations_dir=storage_dir)
@@ -74,6 +74,13 @@ def run_job(logs, cluster_exec_input_file, cluster_exec_output_file, pickled_clu
 if __name__ == "__main__":
     base_job_dir = os.path.dirname(os.path.abspath(__file__))
     realizations_dir = os.path.join(base_job_dir, "realizations")
+    log_filename = os.path.join(base_job_dir, "molns_exec_helper.log")
+
+    import sys
+    try:
+        engines = sys.argv[1]
+    except IndexError as e:
+        engines = None
 
     if not os.path.exists(realizations_dir):
         os.mkdir(realizations_dir)
@@ -81,11 +88,9 @@ if __name__ == "__main__":
     with open(os.path.join(base_job_dir, "pid"), 'w+') as p:
         p.write(str(os.getpid()))
 
-    log_filename = os.path.join(base_job_dir, "molns_exec_helper.log")
-
     run_job(logs=log_filename, cluster_exec_input_file=os.path.join(base_job_dir, "cluster-exec-input-file"),
             cluster_exec_output_file=os.path.join(base_job_dir, "cluster-exec-output-file"),
-            storage_dir=realizations_dir, log_filename=log_filename,
+            storage_dir=realizations_dir, log_filename=log_filename, num_engines=engines,
             pickled_cluster_input_file=os.path.join(base_job_dir, "pickled-cluster-input-file"))
 
     with open(os.path.join(base_job_dir, "cluster-exec-job-complete"), 'w+') as comp:

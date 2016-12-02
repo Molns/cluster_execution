@@ -31,7 +31,7 @@ class RemoteHost:
 
 
 class RemoteJob:
-    def __init__(self, input_files, date, remote_host, local_scratch_dir=None, remote_job_id=None):
+    def __init__(self, input_files, date, remote_host, local_scratch_dir=None, remote_job_id=None, num_engines=None):
         self.input_files = input_files
         self.date = date
         self.remote_host = remote_host
@@ -39,6 +39,7 @@ class RemoteJob:
             remote_job_id = create_new_id()
         self.id = remote_job_id
         self.local_scratch_dir = local_scratch_dir
+        self.num_engines = num_engines
 
     def __str__(self):
         return "RemoteJob: input_files={0}, date={1}, remote_host={2}, id={3}, local_scratch_dir={4}"\
