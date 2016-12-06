@@ -127,7 +127,6 @@ class ClusterDeploy:
                 output += "\n**********Job logs**********\n"
                 output += log.read()
                 output += "\n****************************\n"
-
             except (OSError, IOError):
                 pass
 
