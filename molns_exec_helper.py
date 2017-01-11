@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# This program executes on a cluster.
+# This script may execute on a cluster.
 import json
 import pickle
 import sys
