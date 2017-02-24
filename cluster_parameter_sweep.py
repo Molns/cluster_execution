@@ -135,8 +135,8 @@ class ClusterParameterSweep:
                 return results
             except paramiko.SSHException as e:
                 logging.error(e)
-                logging.info("Backing off... will try to connect to the cluster again in {0} minutes."
-                             .format(constants.BACK_OFF_TIME / 60))
+                logging.info("Backing off... will try to connect to {0}@{1} again in {2} minutes."
+                             .format(remote_job.remote_host.username, remote_job.remote_host.ip_address, constants.BACK_OFF_TIME / 60))
                 time.sleep(constants.BACK_OFF_TIME)
             except cluster_execution_exceptions.RemoteJobNotFinished:
                 time.sleep(1)
