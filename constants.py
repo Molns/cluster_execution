@@ -16,3 +16,4 @@ DefaultSshPort = 22
 RemoteJobRunning = 0
 RemoteJobCompleted = 1
 RemoteJobFailed = 2
+BACK_OFF_TIME = 30 * 60
